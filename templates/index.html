@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">字段替换</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <style>
+        :root {
+            --primary: #4F6EF7;
+            --primary-light: #EEF1FE;
+            --primary-dark: #3A56C7;
+            --success: #34C759;
+            --success-light: #E8F9EE;
+            --danger: #FF3B30;
+            --danger-light: #FFEDED;
+            --warning: #FF9500;
+            --warning-light: #FFF4E5;
+            --bg-primary: #F9FAFB;
+            --bg-secondary: white;
+            --bg-tertiary: #F3F4F6;
+            --bg-modal: white;
+            --border: #D1D5DB;
+            --border-light: #E5E7EB;
+            --text-primary: #374151;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        [data-theme="dark"] {
+            --primary: #6B8AFF;
+            --primary-light: #2A3A6B;
+            --primary-dark: #8BA4FF;
+            --success: #30D158;
+            --success-light: #1A3A25;
+            --danger: #FF453A;
+            --danger-light: #3A1A1A;
+            --warning: #FFD60A;
+            --warning-light: #3A3520;
+            --bg-primary: #1C1C1E;
+            --bg-secondary: #2C2C2E;
+            --bg-tertiary: #3A3A3C;
+            --bg-modal: #2C2C2E;
+            --border: #48484A;
+            --border-light: #3A3A3C;
+            --text-primary: #F5F5F7;
+            --text-secondary: #A1A1A6;
+            --text-muted: #636366;
+            --gray-50: #1C1C1E;
+            --gray-100: #2C2C2E;
+            --gray-200: #48484A;
+            --gray-300: #636366;
+            --gray-400: #636366;
+            --gray-500: #A1A1A6;
+            --gray-600: #A1A1A6;
+            --gray-700: #F5F5F7;
+            --gray-800: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .app-header .brand { display: flex; align-items: center; gap: 10px; }
+        .app-header .logo {
+            width: 32px; height: 32px;
+            background: var(--primary); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px; font-weight: 700;
+        }
+        .app-header h1 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .app-header .tag {
+            font-size: 11px; background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 20px; font-weight: 500;
+        }
+
+        .app-body {
+            flex: 1; display: flex; overflow: hidden; padding: 16px; gap: 16px;
+        }
+
+        .sidebar { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+        .main-area { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+        .card {
+            background: var(--bg-secondary); border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-header {
+            padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .card-title {
+            font-size: 13px; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; gap: 6px;
+        }
+        
+        .privacy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .privacy-toggle:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border);
+        }
+        .privacy-toggle.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .privacy-toggle.active .toggle-icon {
+            color: var(--primary);
+        }
+        .toggle-icon {
+            font-size: 12px;
+            transition: color 0.2s ease;
+        }
+        .toggle-text {
+            font-size: 11px;
+        }
+        .toggle-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .privacy-toggle.active .toggle-indicator {
+            background: var(--primary);
+            transform: translateX(6px);
+        }
+        .toggle-indicator::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: white;
+            transform: scale(0);
+            transition: transform 0.2s ease;
+        }
+        .privacy-toggle.active .toggle-indicator::after {
+            transform: scale(1);
+        }
+        
+        /* 无痕模式下的数据管理样式 */
+        .privacy-mode-disabled .path-setting {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.7);
+        }
+        .privacy-mode-disabled .data-actions {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.7);
+        }
+        .privacy-mode-disabled .path-input-group input {
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            border-color: var(--border-light);
+        }
+        .privacy-mode-disabled .path-info {
+            color: var(--text-muted);
+        }
+        .privacy-mode-disabled .path-info .info-icon {
+            opacity: 0.5;
+        }
+        .status-icon {
+            font-size: 12px;
+        }
+        .status-text {
+            font-size: 11px;
+        }
+        .privacy-status .btn {
+            padding: 1px 6px;
+            font-size: 10px;
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .privacy-status .btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .card-title .icon { font-size: 15px; }
+        .card-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+        .card-body::-webkit-scrollbar { width: 4px; }
+        .card-body::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+        .drop-zone {
+            border: 2px dashed var(--border); border-radius: var(--radius-sm);
+            padding: 24px; text-align: center; cursor: pointer;
+            transition: all 0.2s ease; background: var(--bg-tertiary);
+        }
+        .drop-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+        .drop-zone.active { border-color: var(--primary); background: var(--primary-light); }
+        .drop-zone input { display: none; }
+        .drop-zone .upload-icon { font-size: 28px; margin-bottom: 6px; }
+        .drop-zone .upload-text { font-size: 13px; color: var(--text-secondary); }
+        .drop-zone .upload-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        .file-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+        .file-chip {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; background: var(--bg-tertiary);
+            border-radius: 6px; font-size: 12px; transition: background 0.15s;
+            border: 1px solid var(--border-light);
+        }
+        .file-chip:hover { background: var(--bg-tertiary); }
+        .file-chip .file-icon { color: var(--primary); font-size: 14px; }
+        .file-chip .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-chip .file-size { color: var(--text-muted); font-size: 11px; }
+        .file-chip .file-remove {
+            width: 18px; height: 18px; border-radius: 50%; border: none;
+            background: transparent; color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: all 0.15s;
+        }
+        .file-chip .file-remove:hover { background: var(--danger-light); color: var(--danger); }
+
+        .rule-form { display: flex; gap: 6px; align-items: center; }
+        .rule-form input {
+            flex: 1; padding: 7px 10px; border: 1px solid var(--border-light);
+            border-radius: 6px; font-size: 12px; outline: none;
+            transition: border-color 0.15s; background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        .rule-form input:focus { border-color: var(--primary); background: var(--bg-secondary); }
+        .rule-form input::placeholder { color: var(--text-muted); }
+        .rule-form .arrow-icon { color: var(--primary); font-size: 16px; flex-shrink: 0; }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 6px 12px; border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 500; cursor: pointer;
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { opacity: 0.9; }
+        .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-light); }
+        .btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border); }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+        .btn-xs { padding: 2px 6px; font-size: 10px; border-radius: 4px; }
+
+        /* 设置面板样式 */
+        .settings-section {
+            margin-bottom: 16px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            padding: 12px;
+            border: 1px solid var(--border-light);
+        }
+        .settings-section:last-child { margin-bottom: 0; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .section-icon {
+            font-size: 14px;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            padding: 2px;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .mode-toggle button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-width: 0;
+            white-space: nowrap;
+        }
+        .mode-toggle button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        .mode-toggle button:hover:not(.active) {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .mode-icon {
+            font-size: 14px;
+        }
+        .mode-text {
+            font-weight: 500;
+        }
+        
+        .path-setting label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .path-input-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .path-input-group input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 11px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.15s;
+            min-width: 0;
+        }
+        .path-input-group input:focus {
+            border-color: var(--primary);
+        }
+        .path-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+        .info-icon {
+            font-size: 10px;
+            opacity: 0.7;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .info-text {
+            flex: 1;
+        }
+        
+        .data-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .data-actions .btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        
+        .action-icon {
+            font-size: 12px;
+        }
+        
+        .privacy-mode {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .privacy-mode input {
+            display: none;
+        }
+        .checkmark {
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.15s;
+        }
+        .privacy-mode input:checked + .checkmark {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .privacy-mode input:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .privacy-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .process-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s;
+        }
+        .process-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        .process-icon {
+            font-size: 14px;
+        }
+
+        .toolbar { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .toolbar .divider { width: 1px; height: 16px; background: var(--border-light); margin: 0 4px; }
+
+        .rule-list { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+        .rule-row {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 8px; border-radius: 6px; font-size: 12px;
+            transition: background 0.15s; cursor: default;
+            border: 1px solid var(--border-light);
+            background: var(--bg-secondary);
+        }
+        .rule-row:hover { background: var(--bg-tertiary); }
+        .rule-row.selected { background: var(--primary-light); border-color: var(--primary); }
+        .rule-row.editing { background: var(--bg-secondary); border-color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .rule-check {
+            width: 16px; height: 16px; border-radius: 4px;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.15s;
+            font-size: 10px; color: transparent; cursor: pointer;
+        }
+        .rule-row:not(.editing) .rule-check { cursor: pointer; }
+        .rule-row.selected .rule-check { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .rule-from { font-weight: 600; color: var(--text-primary); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rule-arrow { color: var(--text-muted); font-size: 11px; flex-shrink: 0; }
+        .rule-to { color: var(--text-secondary); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rule-actions { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
+        .rule-row:hover .rule-actions { opacity: 1; }
+        .rule-row.editing .rule-actions { opacity: 1; }
+
+        .edit-input {
+            flex: 1; padding: 4px 8px; border: 1px solid var(--primary);
+            border-radius: 4px; font-size: 12px; outline: none;
+            min-width: 80px;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+        .edit-arrow { color: var(--primary); font-size: 12px; flex-shrink: 0; }
+        .edit-btns { display: flex; gap: 3px; flex-shrink: 0; }
+        .edit-btns button { padding: 3px 8px; font-size: 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: 500; }
+        .edit-save { background: var(--success); color: white; }
+        .edit-cancel { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+        .settings-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row.label-top { align-items: stretch; flex-direction: column; gap: 8px; padding: 10px 0; }
+        .settings-row.label-top > label { min-width: auto; margin-bottom: 2px; }
+        .settings-row label {
+            font-size: 12px; color: var(--text-secondary); min-width: 48px;
+            font-weight: 600; letter-spacing: 0.3px;
+        }
+
+        .mode-toggle {
+            display: flex; background: var(--bg-tertiary); border-radius: 8px;
+            padding: 2px; position: relative;
+        }
+        .mode-toggle button {
+            flex: 1; padding: 7px 14px; border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            background: transparent; color: var(--text-secondary); position: relative; z-index: 1;
+        }
+        .mode-toggle button.active { background: var(--bg-secondary); color: var(--primary); box-shadow: 0 1px 4px rgba(79,110,247,0.18); }
+
+        .path-input { width: 100%; display: flex; gap: 6px; align-items: stretch; min-width: 0; }
+        .path-input input {
+            flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--border-light);
+            border-radius: 6px; font-size: 12px; outline: none; background: var(--bg-tertiary);
+            transition: all 0.15s;
+            color: var(--text-primary);
+        }
+        .path-input input:focus { border-color: var(--primary); background: var(--bg-secondary); box-shadow: 0 0 0 3px rgba(79,110,247,0.08); }
+        .path-input input::placeholder { color: var(--text-muted); }
+        .browse-btn {
+            padding: 7px 12px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none; border-radius: 6px; cursor: pointer;
+            font-size: 11px; color: white; font-weight: 600;
+            transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .browse-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(79,110,247,0.3); }
+
+        .process-section { padding: 12px 16px; border-top: 1px solid var(--border-light); flex-shrink: 0; }
+        .process-btn {
+            width: 100%; padding: 10px; font-size: 14px; font-weight: 700;
+            border-radius: var(--radius-sm); letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--success), var(--primary-dark));
+            box-shadow: 0 2px 8px rgba(52,199,89,0.3);
+            transition: all 0.2s;
+        }
+        .process-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(52,199,89,0.4); }
+        .process-btn:disabled { opacity: 0.7; transform: none; box-shadow: none; }
+
+        .result-area { flex: 1; min-height: 0; }
+        .result-stats { display: flex; gap: 12px; margin-bottom: 10px; }
+        .stat-card { flex: 1; padding: 10px; border-radius: var(--radius-sm); text-align: center; }
+        .stat-card.ok { background: var(--success-light); }
+        .stat-card.fail { background: var(--danger-light); }
+        .stat-card .stat-num { font-size: 22px; font-weight: 700; }
+        .stat-card.ok .stat-num { color: var(--success); }
+        .stat-card.fail .stat-num { color: var(--danger); }
+        .stat-card .stat-label { font-size: 11px; color: var(--text-secondary); }
+
+        .export-bar {
+            display: flex; gap: 8px; align-items: center;
+            margin-top: 14px; padding: 12px;
+            background: var(--primary-light); border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+        }
+        .export-bar .export-info { font-size: 12px; color: var(--primary-dark); flex: 1; font-weight: 500; }
+        .export-bar .btn { box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .output-file-list {
+            max-height: 160px; overflow-y: auto; margin-top: 10px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .output-file-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; border-radius: 8px; font-size: 12px;
+            background: var(--bg-secondary); border: 1px solid var(--border-light);
+            transition: all 0.15s;
+        }
+        .output-file-item:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+        .output-file-item .of-icon { font-size: 16px; }
+        .output-file-item .of-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--text-primary); }
+        .output-file-item .of-size { color: var(--text-muted); font-size: 11px; flex-shrink: 0; }
+        .download-btn {
+            padding: 5px 14px !important; font-size: 11px !important; font-weight: 600 !important;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+            color: white !important; border: none !important; border-radius: 6px !important;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+            display: inline-flex !important; align-items: center; gap: 4px;
+        }
+        .download-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(79,110,247,0.3); }
+
+        .result-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .result-table th {
+            padding: 8px 10px; text-align: left; font-weight: 600; color: var(--text-secondary);
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+        .result-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
+        .result-table tr:hover td { background: var(--bg-tertiary); }
+        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+        .status-dot.ok { background: var(--success); }
+        .status-dot.fail { background: var(--danger); }
+
+        .empty-state { text-align: center; padding: 24px; color: var(--text-muted); }
+        .empty-state .empty-icon { font-size: 28px; margin-bottom: 6px; }
+        .empty-state p { font-size: 12px; }
+
+        .toast-container {
+            position: fixed; top: 16px; right: 16px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .toast {
+            padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px;
+            font-weight: 500; color: white; box-shadow: var(--shadow-lg);
+            animation: toastIn 0.3s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            justify-content: center; align-items: center; backdrop-filter: blur(2px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-modal); border-radius: var(--radius); 
+            width: 380px; max-width: 90vw; box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .modal-icon {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .modal-body {
+            padding: 24px;
+            flex: 1;
+        }
+        
+        .modal-description {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .description-icon {
+            font-size: 14px;
+            opacity: 0.7;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        
+        .modal-section {
+            margin-bottom: 20px;
+        }
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+        .section-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px 20px;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .modal .close-btn {
+            background: none; border: none; font-size: 18px; cursor: pointer;
+            color: var(--text-muted); width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center; border-radius: 4px;
+        }
+        .modal .close-btn:hover { background: var(--bg-tertiary); color: var(--text-secondary); }
+        
+        /* 导入模态框样式 */
+        .modal h3 { font-size: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .modal input[type="file"] {
+            width: 100%; padding: 10px; border: 1px dashed var(--border);
+            border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 12px;
+        }
+
+        .count-badge {
+            background: var(--primary-light); color: var(--primary);
+            font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+        }
+
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: white; animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .folder-input { position: absolute; visibility: hidden; width: 0; height: 0; }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <div class="logo"><img src="/static/favicon.png" style="width:28px;height:28px;border-radius:6px;" alt=""></div>
+            <h1 data-i18n="appTitle">文档字段批量替换工具 by QcQ</h1>
+            <span class="tag">v0.1</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <span style="font-size:12px;color:var(--text-muted);"><span data-i18n="rules">规则</span>: <span class="count-badge" id="ruleCount">0</span></span>
+            <span style="font-size:12px;color:var(--text-muted);"><span data-i18n="files">文件</span>: <span class="count-badge" id="fileCount">0</span></span>
+            <button class="btn btn-ghost btn-sm" onclick="toggleLanguage()" title="Toggle Language" id="langBtn" style="min-width:32px;">
+                <span style="font-size:12px;">🌐 EN</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" title="Toggle Theme" id="themeBtn" style="min-width:32px;">
+                <span style="font-size:12px;">🌙</span>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="shutdownApp()" data-i18n-title="shutdownTitle" title="关闭应用">
+                <span style="font-size:12px;">✕</span> <span data-i18n="shutdownService">关闭</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <aside class="sidebar">
+            <div class="card" style="flex:1;">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">📄</span> <span data-i18n="files">文件</span></span>
+                    <button class="btn btn-ghost btn-xs" onclick="clearFiles()" data-i18n="fileClear">清空</button>
+                </div>
+                <div class="card-body">
+                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" multiple accept=".docx,.doc,.wps">
+                        <div class="upload-icon">📂</div>
+                        <div class="upload-text" data-i18n="dragUpload">拖拽或点击上传</div>
+                        <div class="upload-hint" data-i18n="supportFormat">支持 .docx / .doc / .wps</div>
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">⚙️</span> <span data-i18n="settings">设置</span></span>
+                    <div class="privacy-toggle" id="privacyToggle" onclick="togglePrivacyMode()" title="点击切换无痕模式">
+                        <span class="toggle-icon">🔒</span>
+                        <span class="toggle-text" data-i18n="privacyMode">无痕模式</span>
+                        <span class="toggle-indicator"></span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:8px 16px;">
+                    <div class="settings-section">
+                        <div class="section-header">
+                            <span class="section-icon">🔄</span>
+                            <span data-i18n="operationMode">操作模式</span>
+                        </div>
+                        <div class="mode-toggle">
+                            <button class="active" onclick="setMode('forward',this)" data-i18n="replace">
+                                <span class="mode-icon">🔄</span>
+                                <span class="mode-text">替换</span>
+                            </button>
+                            <button onclick="setMode('reverse',this)" data-i18n="reverse">
+                                <span class="mode-icon">↩️</span>
+                                <span class="mode-text">反替换</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <div class="section-header">
+                            <span class="section-icon">📁</span>
+                            <span data-i18n="dataManagement">数据管理</span>
+                        </div>
+                        <div class="path-setting">
+                            <label data-i18n="dataDir">数据目录</label>
+                            <div class="path-input-group">
+                                <input type="text" id="dataDirInput" readonly placeholder="点击选择数据目录">
+                                <button class="btn btn-primary btn-sm" onclick="selectDataDir()" data-i18n="browse">浏览</button>
+                            </div>
+                            <div class="path-info">
+                                <span class="info-icon">💡</span>
+                                <span class="info-text" data-i18n="dataDirHint">存储上传文件和输出文件的目录</span>
+                            </div>
+                            <div class="data-actions">
+                                <button class="btn btn-danger btn-sm" onclick="clearDataDir()" data-i18n="clearData">
+                                    <span class="action-icon">🗑️</span>
+                                    <span data-i18n="clearDataText">清除数据</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="process-section">
+                    <button class="btn btn-success process-btn" id="processBtn" onclick="processFiles()">
+                        <span class="process-icon">⚡</span>
+                        <span data-i18n="process">开始处理</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            <div class="card" style="flex:1;">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">📋</span> <span data-i18n="rules">替换规则</span></span>
+                    <div class="toolbar">
+                        <button class="btn btn-ghost btn-xs" onclick="sortRules('length')" data-i18n="sortLen">长度↓</button>
+                        <button class="btn btn-ghost btn-xs" onclick="sortRules('alpha')" data-i18n="sortAlpha">A→Z</button>
+                        <div class="divider"></div>
+                        <button class="btn btn-ghost btn-xs" onclick="deleteSelected()" data-i18n="deleteSelected">删除选中</button>
+                        <button class="btn btn-ghost btn-xs" onclick="clearRules()" data-i18n="clear">清空</button>
+                        <div class="divider"></div>
+                        <button class="btn btn-ghost btn-xs" onclick="showImportModal()" data-i18n="import">导入</button>
+                        <button class="btn btn-ghost btn-xs" onclick="exportRules('json')" data-i18n="export">导出</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="rule-form">
+                        <input type="text" id="originalText" data-i18n-placeholder="originalPlaceholder" placeholder="原文本（双击规则行可编辑）" onkeydown="if(event.key==='Enter')addRule()">
+                        <span class="arrow-icon">→</span>
+                        <input type="text" id="replacementText" data-i18n-placeholder="replacementPlaceholder" placeholder="替换为" onkeydown="if(event.key==='Enter')addRule()">
+                        <button class="btn btn-primary btn-sm" onclick="addRule()" data-i18n="add">添加</button>
+                    </div>
+                    <div class="rule-list" id="ruleList"></div>
+                </div>
+            </div>
+
+            <div class="card result-area" id="resultCard" style="display:none;">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">📊</span> <span data-i18n="results">处理结果</span></span>
+                    <button class="btn btn-ghost btn-xs" onclick="document.getElementById('resultCard').style.display='none'" data-i18n="resultClose">关闭</button>
+                </div>
+                <div class="card-body">
+                    <div class="result-stats" id="resultStats"></div>
+                    <div id="resultTableWrap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="importModal">
+        <div class="modal" style="width:420px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">📥</span>
+                    <span data-i18n="importTitle">导入规则</span>
+                </div>
+                <button class="close-btn" onclick="closeImportModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-description">
+                    <span class="description-icon">💡</span>
+                    <span data-i18n="importHint">支持 JSON / TXT 格式</span>
+                </div>
+                
+                <div class="modal-section">
+                    <input type="file" id="ruleFileInput" accept=".json,.txt">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeImportModal()" data-i18n="cancel">取消</button>
+                <button class="btn btn-primary" onclick="importRules()" data-i18n="importConfirm">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="dataDirModal">
+        <div class="modal" style="width:520px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">📁</span>
+                    <span data-i18n="dataDirTitle">设置数据目录</span>
+                </div>
+                <button class="close-btn" onclick="closeDataDirModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-description">
+                    <span class="description-icon">💡</span>
+                    <span data-i18n="dataDirHint">选择存储上传文件和输出文件的目录</span>
+                </div>
+                
+                <div class="modal-section">
+                    <label class="section-label" data-i18n="currentDir">当前目录</label>
+                    <div class="path-input-group">
+                        <input type="text" id="currentDataDir" readonly>
+                    </div>
+                </div>
+                
+                <div class="modal-section">
+                    <label class="section-label" data-i18n="newDir">新目录</label>
+                    <div class="path-input-group">
+                        <input type="text" id="newDataDir" placeholder="选择新目录">
+                        <button class="btn btn-primary" onclick="browseNewDir()" data-i18n="browse">浏览</button>
+                    </div>
+                    <div class="path-info">
+                        <span class="info-icon">⚠️</span>
+                        <span class="info-text" data-i18n="dataDirWarning">修改目录后，现有文件不会自动移动</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeDataDirModal()" data-i18n="cancel">取消</button>
+                <button class="btn btn-primary" onclick="saveDataDir()" data-i18n="save">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let uploadedFiles = [];
+        let rules = [];
+        let selectedRules = new Set();
+        let editingIndex = -1;
+        let currentMode = 'forward';
+
+        function toast(msg, type = 'info') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+        }
+
+        function setMode(mode, btn) {
+            currentMode = mode;
+            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function fmtSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+            return (b / 1048576).toFixed(1) + ' MB';
+        }
+
+        function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+        const dz = document.getElementById('dropZone');
+        dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('active'); });
+        dz.addEventListener('dragleave', () => dz.classList.remove('active'));
+        dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('active'); handleFiles(e.dataTransfer.files); });
+        document.getElementById('fileInput').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+
+        function handleFiles(files) {
+            const valid = Array.from(files).filter(f => {
+                const ext = f.name.split('.').pop().toLowerCase();
+                return ['docx', 'doc', 'wps'].includes(ext);
+            });
+            if (!valid.length) { toast(t('selectFile') + ' (.docx, .doc, .wps)', 'error'); return; }
+            valid.forEach(f => {
+                const idx = uploadedFiles.findIndex(u => u.name === f.name);
+                if (idx >= 0) uploadedFiles[idx] = f;
+                else uploadedFiles.push(f);
+            });
+            updateFiles();
+            toast(t('fileAdded').replace('{n}', valid.length), 'success');
+        }
+
+        function updateFiles() {
+            const el = document.getElementById('fileList');
+            document.getElementById('fileCount').textContent = uploadedFiles.length;
+            if (!uploadedFiles.length) { el.innerHTML = ''; return; }
+            el.innerHTML = uploadedFiles.map((f, i) => `
+                <div class="file-chip">
+                    <span class="file-icon">📝</span>
+                    <span class="file-name" title="${esc(f.name)}">${esc(f.name)}</span>
+                    <span class="file-size">${fmtSize(f.size)}</span>
+                    <button class="file-remove" onclick="removeFile(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(i) { uploadedFiles.splice(i, 1); updateFiles(); }
+        function clearFiles() { uploadedFiles = []; updateFiles(); toast(t('filesCleared')); }
+
+        function addRule() {
+            const o = document.getElementById('originalText');
+            const r = document.getElementById('replacementText');
+            const orig = o.value.trim();
+            const repl = r.value;
+            if (!orig) { toast(t('originalRequired'), 'error'); o.focus(); return; }
+            const idx = rules.findIndex(x => x.original === orig);
+            if (idx >= 0) { rules[idx].replacement = repl; toast(t('ruleUpdated'), 'info'); }
+            else { rules.push({ original: orig, replacement: repl }); toast(t('ruleAdded'), 'success'); }
+            o.value = ''; r.value = ''; o.focus();
+            document.getElementById('ruleCount').textContent = rules.length;
+            updateRules();
+        }
+
+        function deleteRule(i) {
+            const orig = rules[i].original;
+            rules.splice(i, 1);
+            selectedRules.delete(orig);
+            if (editingIndex === i) editingIndex = -1;
+            document.getElementById('ruleCount').textContent = rules.length;
+            updateRules();
+        }
+
+        function toggleRule(orig) {
+            selectedRules.has(orig) ? selectedRules.delete(orig) : selectedRules.add(orig);
+            updateRules();
+        }
+
+        function startEdit(i) {
+            if (editingIndex === i) return;
+            editingIndex = i;
+            updateRules();
+            const row = document.querySelector(`[data-rule-idx="${i}"]`);
+            if (row) {
+                const inpFrom = row.querySelector('.edit-from');
+                if (inpFrom) { inpFrom.focus(); inpFrom.select(); }
+            }
+        }
+
+        function cancelEdit() {
+            editingIndex = -1;
+            updateRules();
+        }
+
+        function saveEdit(i) {
+            const row = document.querySelector(`[data-rule-idx="${i}"]`);
+            if (!row) { editingIndex = -1; updateRules(); return; }
+            const newOrig = row.querySelector('.edit-from').value.trim();
+            const newRepl = row.querySelector('.edit-to').value;
+            if (!newOrig) { toast(t('originalEmpty'), 'error'); return; }
+            rules[i] = { original: newOrig, replacement: newRepl };
+            selectedRules.delete(rules[i].original);
+            editingIndex = -1;
+            document.getElementById('ruleCount').textContent = rules.length;
+            updateRules();
+            toast(t('ruleSaved'), 'success');
+        }
+
+        function updateRules() {
+            const el = document.getElementById('ruleList');
+            if (!rules.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p data-i18n="emptyRuleHint">添加规则开始使用，双击可编辑</p></div>`;
+                return;
+            }
+            el.innerHTML = rules.map((r, i) => {
+                if (editingIndex === i) {
+                    return `
+                    <div class="rule-row editing" data-rule-idx="${i}">
+                        <input class="edit-input edit-from" value="${esc(r.original)}" data-i18n-placeholder="originalPlaceholder" placeholder="原文本"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();saveEdit(${i});}if(event.key==='Escape'){event.preventDefault();cancelEdit();}">
+                        <span class="edit-arrow">→</span>
+                        <input class="edit-input edit-to" value="${esc(r.replacement)}" data-i18n-placeholder="replacementPlaceholder" placeholder="替换为"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();saveEdit(${i});}if(event.key==='Escape'){event.preventDefault();cancelEdit();}">
+                        <div class="edit-btns">
+                            <button class="edit-save" onclick="saveEdit(${i})" data-i18n="save">保存</button>
+                            <button class="edit-cancel" onclick="cancelEdit()" data-i18n="cancel">取消</button>
+                        </div>
+                    </div>`;
+                }
+                return `
+                <div class="rule-row ${selectedRules.has(r.original)?'selected':''}" data-rule-idx="${i}"
+                    ondblclick="startEdit(${i})">
+                    <span class="rule-check" onclick="toggleRule('${r.original.replace(/'/g,"\\'")}')">✓</span>
+                    <span class="rule-from" title="${esc(r.original)}">${esc(r.original)}</span>
+                    <span class="rule-arrow">→</span>
+                    <span class="rule-to" title="${esc(r.replacement)}">${esc(r.replacement) || t('empty')}</span>
+                    <span class="rule-actions">
+                        <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();startEdit(${i})" data-i18n="edit">编辑</button>
+                        <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteRule(${i})" style="color:var(--danger);" data-i18n="delete">删除</button>
+                    </span>
+                </div>`;
+            }).join('');
+        }
+
+        function clearRules() { rules = []; selectedRules.clear(); editingIndex = -1; document.getElementById('ruleCount').textContent = 0; updateRules(); toast(t('ruleCleared')); }
+
+        function deleteSelected() {
+            if (!selectedRules.size) { toast(t('selectRuleFirst'), 'error'); return; }
+            const cnt = selectedRules.size;
+            rules = rules.filter((r, idx) => {
+                if (selectedRules.has(r.original)) {
+                    if (editingIndex === idx) editingIndex = -1;
+                    return false;
+                }
+                return true;
+            });
+            selectedRules.clear();
+            document.getElementById('ruleCount').textContent = rules.length;
+            updateRules();
+            toast(t('ruleDeleted').replace('{n}', cnt), 'success');
+        }
+
+        async function sortRules(by) {
+            if (!rules.length) return;
+            try {
+                const res = await fetch('/api/rules/sort', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ by }) });
+                const data = await res.json();
+                if (data.success) { rules = data.rules; editingIndex = -1; updateRules(); toast(t('sortComplete')); }
+            } catch (e) { toast(t('sortFailed'), 'error'); }
+        }
+
+        function showImportModal() { document.getElementById('importModal').classList.add('show'); }
+        function closeImportModal() { document.getElementById('importModal').classList.remove('show'); document.getElementById('ruleFileInput').value = ''; }
+
+        async function importRules() {
+            const file = document.getElementById('ruleFileInput').files[0];
+            if (!file) { toast(t('selectFile'), 'error'); return; }
+            const fd = new FormData(); fd.append('file', file);
+            try {
+                const res = await fetch('/api/rules/import', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    rules = data.rules;
+                    editingIndex = -1;
+                    document.getElementById('ruleCount').textContent = rules.length;
+                    updateRules();
+                    closeImportModal();
+                    toast(t('importSuccess').replace('{n}', data.imported), 'success');
+                } else { toast(data.error, 'error'); }
+            } catch (e) { toast(t('importFailed'), 'error'); }
+        }
+
+        function exportRules(fmt) {
+            if (!rules.length) { toast(t('noRuleToExport'), 'error'); return; }
+            window.location.href = `/api/rules/export?format=${fmt}`;
+        }
+
+        async function processFiles() {
+            if (!uploadedFiles.length) { toast(t('uploadFileFirst'), 'error'); return; }
+            if (!rules.length) { toast(t('addRuleFirst'), 'error'); return; }
+
+            const btn = document.getElementById('processBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> ' + t('processing');
+
+            try {
+                const uploads = await Promise.all(uploadedFiles.map(f => {
+                    const fd = new FormData(); fd.append('files', f);
+                    return fetch('/api/upload', { method: 'POST', body: fd }).then(r => r.json());
+                }));
+                const allFiles = uploads.flatMap(r => r.files);
+
+                const res = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: currentMode, files: allFiles, rules })
+                });
+                const data = await res.json();
+
+                if (data.success) { showResults(data.results); toast(t('processComplete'), 'success'); }
+                else { toast(data.error, 'error'); }
+            } catch (e) { toast(t('requestFailed'), 'error'); }
+            finally { btn.disabled = false; btn.innerHTML = '⚡ ' + t('process'); }
+        }
+
+        function showResults(results) {
+            const card = document.getElementById('resultCard');
+            card.style.display = 'flex';
+
+            const ok = results.filter(r => r.success).length;
+            const fail = results.filter(r => !r.success).length;
+
+            document.getElementById('resultStats').innerHTML = `
+                <div class="stat-card ok"><div class="stat-num">${ok}</div><div class="label" data-i18n="success">成功</div></div>
+                <div class="stat-card fail"><div class="stat-num">${fail}</div><div class="label" data-i18n="fail">失败</div></div>
+            `;
+
+            let outputFilesHtml = '';
+            if (ok > 0) {
+                outputFilesHtml = `
+                <div class="export-bar">
+                    <span class="export-info">✅ <span data-i18n="exportSuccess">处理完成，点击下载结果文件</span></span>
+                    <button class="btn btn-primary btn-sm" onclick="downloadAllOutput()" data-i18n="downloadAll">📦 打包下载全部</button>
+                    <button class="btn btn-ghost btn-sm" onclick="loadOutputFiles()" data-i18n="viewList">📂 查看列表</button>
+                </div>
+                <div class="output-file-list" id="outputFileList"></div>`;
+            }
+
+            document.getElementById('resultTableWrap').innerHTML = `
+                <table class="result-table">
+                    <thead><tr><th>#</th><th data-i18n="files">文件</th><th data-i18n="status">状态</th><th data-i18n="replacedCount">替换数</th><th data-i18n="output">输出文件</th></tr></thead>
+                    <tbody>
+                    ${results.map((r, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.name)}">${esc(r.name)}</td>
+                            <td><span class="status-dot ${r.success?'ok':'fail'}"></span>${r.success?t('success'):t('fail')}</td>
+                            <td>${r.count ?? '-'}</td>
+                            <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.output||'')}">${r.success ? esc(r.output.split(/[/\\]/).pop()) : (r.error||'-')}</td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table>
+                ${outputFilesHtml}
+            `;
+        }
+
+        function fmtSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        async function loadOutputFiles() {
+            try {
+                const res = await fetch('/api/output-files');
+                const data = await res.json();
+                const el = document.getElementById('outputFileList');
+                if (!data.success || !data.files.length) {
+                    el.innerHTML = `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;" data-i18n="noOutput">暂无输出文件</div>`;
+                    return;
+                }
+                el.innerHTML = data.files.map(f => `
+                    <div class="output-file-item">
+                        <span class="of-icon">📄</span>
+                        <span class="of-name" title="${esc(f.name)}">${esc(f.name)}</span>
+                        <span class="of-size">${fmtSize(f.size)}</span>
+                        <button class="download-btn" onclick="window.location.href='/api/download-output/${encodeURIComponent(f.name)}'" data-i18n="download">⬇ 下载</button>
+                    </div>
+                `).join('');
+            } catch (e) { toast(t('loadFailed'), 'error'); }
+        }
+
+        function downloadAllOutput() {
+            window.location.href = '/api/download-all-output';
+        }
+
+        async function shutdownApp() {
+            const t = i18n[currentLang];
+            if (confirm(t.shutdownConfirm)) {
+                try {
+                    const response = await fetch('/api/shutdown', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        toast(t.processing, 'success');
+                        setTimeout(() => {
+                            document.body.innerHTML = `
+                                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:40px;text-align:center;background:var(--bg-primary);">
+                                    <div style="font-size:48px;margin-bottom:20px;">🔌</div>
+                                    <h2 style="color:var(--text-primary);margin-bottom:16px;">${t.serviceClosed}</h2>
+                                    <p style="color:var(--text-secondary);margin-bottom:24px;max-width:400px;">
+                                        ${t.serviceClosedMsg}
+                                    </p>
+                                    <button onclick="window.close()" class="btn btn-primary" style="padding:8px 16px;">${t.closeWindow}</button>
+                                </div>
+                            `;
+                        }, 1000);
+                    } else {
+                        toast(t.shutdownFail, 'error');
+                    }
+                } catch (error) {
+                    toast(t.serviceClosedMsg, 'success');
+                    setTimeout(() => {
+                        document.body.innerHTML = `
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:40px;text-align:center;background:var(--bg-primary);">
+                                <div style="font-size:48px;margin-bottom:20px;">✅</div>
+                                <h2 style="color:var(--text-primary);margin-bottom:16px;">${t.serviceClosed}</h2>
+                                <p style="color:var(--text-secondary);margin-bottom:24px;max-width:400px;">
+                                    ${t.serviceClosedMsg}
+                                </p>
+                                <button onclick="window.close()" class="btn btn-primary" style="padding:8px 16px;">${t.closeWindow}</button>
+                            </div>
+                        `;
+                    }, 1000);
+                }
+            }
+        }
+
+        updateFiles();
+        updateRules();
+
+        // ==================== 主题与语言切换 ====================
+
+        // 完整的语言包
+        const i18n = {
+            zh: {
+                title: '字段替换',
+                appTitle: '文档字段批量替换工具 by QcQ',
+                files: '文件',
+                fileClear: '清空',
+                dragUpload: '拖拽或点击上传',
+                supportFormat: '支持 .docx / .doc / .wps',
+                settings: '设置',
+                mode: '模式',
+                replace: '替换',
+                reverse: '反替换',
+                process: '开始处理',
+                processing: '处理中...',
+                rules: '替换规则',
+                sortLen: '长度↓',
+                sortAlpha: 'A→Z',
+                deleteSelected: '删除选中',
+                clear: '清空',
+                import: '导入',
+                export: '导出',
+                originalPlaceholder: '原文本（双击规则行可编辑）',
+                replacementPlaceholder: '替换为',
+                add: '添加',
+                edit: '编辑',
+                cancel: '取消',
+                save: '保存',
+                delete: '删除',
+                emptyRuleHint: '添加规则开始使用，双击可编辑',
+                ruleUpdated: '规则已更新',
+                ruleAdded: '规则已添加',
+                ruleSaved: '规则已保存',
+                ruleCleared: '规则已清空',
+                selectRuleFirst: '请先选择规则',
+                ruleDeleted: '已删除 {n} 条规则',
+                sortComplete: '排序完成',
+                sortFailed: '排序失败',
+                selectFile: '请选择文件',
+                importSuccess: '导入 {n} 条规则',
+                importFailed: '导入失败',
+                noRuleToExport: '没有规则可导出',
+                uploadFileFirst: '请先上传文件',
+                addRuleFirst: '请先添加规则',
+                processComplete: '处理完成',
+                requestFailed: '请求失败',
+                results: '处理结果',
+                resultClose: '关闭',
+                success: '成功',
+                fail: '失败',
+                status: '状态',
+                replacedCount: '替换数',
+                output: '输出文件',
+                exportSuccess: '处理完成，点击下载结果文件',
+                downloadAll: '打包下载全部',
+                viewList: '查看列表',
+                noOutput: '暂无输出文件',
+                download: '下载',
+                loadFailed: '加载失败',
+                fileAdded: '已添加 {n} 个文件',
+                filesCleared: '文件已清空',
+                originalEmpty: '原文本不能为空',
+                originalText: '原文本',
+                originalRequired: '请输入原文本',
+                empty: '(空)',
+                serviceClosed: '服务已关闭',
+                serviceClosedMsg: '应用服务已停止运行。您可以安全关闭此浏览器窗口。',
+                closeWindow: '关闭窗口',
+                error: '错误',
+                shutdownConfirm: '确定要关闭应用服务吗？\n\n⚠️ 注意：\n• 关闭后服务将停止运行\n• 浏览器页面会显示连接错误\n• 需要重新启动应用才能再次使用\n\n是否继续关闭？',
+                shutdownTitle: '关闭应用',
+                shutdownFail: '关闭失败，请手动关闭窗口',
+                shutdownService: '关闭',
+                importTitle: '导入规则',
+                importHint: '支持 JSON / TXT 格式',
+                importConfirm: '确认导入',
+                dataDir: '数据目录',
+                dataDirTitle: '设置数据目录',
+                dataDirHint: '选择存储上传文件和输出文件的目录',
+                dataDirWarning: '修改目录后，现有文件不会自动移动',
+                currentDir: '当前目录',
+                newDir: '新目录',
+                browse: '浏览',
+                dirRequired: '请输入数据目录',
+                dirSaved: '数据目录已保存',
+                saveFailed: '保存失败',
+                operationMode: '操作模式',
+                dataManagement: '数据管理',
+                clearData: '清除数据',
+                clearDataText: '清除数据',
+                privacyMode: '无痕模式',
+                clearDataConfirm: '确定要清除数据目录中的所有文件吗？此操作不可撤销！',
+                clearDataSuccess: '数据清除成功',
+                clearDataFailed: '数据清除失败',
+                exitPrivacy: '退出',
+            },
+            en: {
+                title: 'Field Replacer',
+                appTitle: 'Doc Field Replacer by QcQ',
+                files: 'Files',
+                fileClear: 'Clear',
+                dragUpload: 'Drag & drop or click to upload',
+                supportFormat: 'Supports .docx / .doc / .wps',
+                settings: 'Settings',
+                mode: 'Mode',
+                replace: 'Replace',
+                reverse: 'Reverse',
+                process: 'Process',
+                processing: 'Processing...',
+                rules: 'Rules',
+                sortLen: 'Len↓',
+                sortAlpha: 'A→Z',
+                deleteSelected: 'Del Selected',
+                clear: 'Clear',
+                import: 'Import',
+                export: 'Export',
+                originalPlaceholder: 'Original text (double-click to edit)',
+                replacementPlaceholder: 'Replacement',
+                add: 'Add',
+                edit: 'Edit',
+                cancel: 'Cancel',
+                save: 'Save',
+                delete: 'Delete',
+                emptyRuleHint: 'Add rules to start, double-click to edit',
+                ruleUpdated: 'Rule updated',
+                ruleAdded: 'Rule added',
+                ruleSaved: 'Rule saved',
+                ruleCleared: 'Rules cleared',
+                selectRuleFirst: 'Please select rules first',
+                ruleDeleted: 'Deleted {n} rules',
+                sortComplete: 'Sort complete',
+                sortFailed: 'Sort failed',
+                selectFile: 'Please select file',
+                importSuccess: 'Imported {n} rules',
+                importFailed: 'Import failed',
+                noRuleToExport: 'No rules to export',
+                uploadFileFirst: 'Please upload files first',
+                addRuleFirst: 'Please add rules first',
+                processComplete: 'Process complete',
+                requestFailed: 'Request failed',
+                results: 'Results',
+                resultClose: 'Close',
+                success: 'Success',
+                fail: 'Fail',
+                status: 'Status',
+                replacedCount: 'Replaced',
+                output: 'Output',
+                exportSuccess: 'Complete, click to download results',
+                downloadAll: 'Download All',
+                viewList: 'View List',
+                noOutput: 'No output files',
+                download: 'Download',
+                loadFailed: 'Load failed',
+                fileAdded: 'Added {n} files',
+                filesCleared: 'Files cleared',
+                originalEmpty: 'Original text cannot be empty',
+                originalText: 'Original',
+                originalRequired: 'Please enter original text',
+                empty: '(empty)',
+                serviceClosed: 'Service Closed',
+                serviceClosedMsg: 'The service has stopped. You can safely close this window.',
+                closeWindow: 'Close Window',
+                error: 'Error',
+                shutdownConfirm: 'Are you sure you want to shutdown the service?\n\n⚠️ Note:\n• The service will stop\n• Browser will show connection error\n• You need to restart the app to use it again\n\nContinue?',
+                shutdownTitle: 'Shutdown',
+                shutdownFail: 'Shutdown failed, please close manually',
+                shutdownService: 'Close',
+                importTitle: 'Import Rules',
+                importHint: 'Supports JSON / TXT format',
+                importConfirm: 'Import',
+                dataDir: 'Data Directory',
+                dataDirTitle: 'Set Data Directory',
+                dataDirHint: 'Select directory for uploaded and output files',
+                dataDirWarning: 'Existing files will not be moved automatically',
+                currentDir: 'Current Directory',
+                newDir: 'New Directory',
+                browse: 'Browse',
+                dirRequired: 'Please enter data directory',
+                dirSaved: 'Data directory saved',
+                saveFailed: 'Save failed',
+                operationMode: 'Operation Mode',
+                dataManagement: 'Data Management',
+                clearData: 'Clear Data',
+                clearDataText: 'Clear Data',
+                privacyMode: 'Privacy Mode',
+                clearDataConfirm: 'Are you sure you want to clear all files in the data directory? This action cannot be undone!',
+                clearDataSuccess: 'Data cleared successfully',
+                clearDataFailed: 'Data clear failed',
+                exitPrivacy: 'Exit',
+            }
+        };
+
+        // 当前语言和主题
+        let currentLang = localStorage.getItem('lang') || 'zh';
+        let currentTheme = localStorage.getItem('theme') || 'light';
+
+        function t(key) {
+            return i18n[currentLang][key] || key;
+        }
+
+        function applyLanguage() {
+            document.getElementById('langBtn').querySelector('span').textContent = currentLang === 'zh' ? '🌐 EN' : '🌐 中文';
+            document.getElementById('themeBtn').querySelector('span').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+
+            document.getElementById('langBtn').title = currentLang === 'zh' ? 'Switch to English' : '切换为中文';
+            document.getElementById('themeBtn').title = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                el.title = t(key);
+            });
+
+            document.title = t('title');
+
+            // 存储设置
+            localStorage.setItem('lang', currentLang);
+            localStorage.setItem('theme', currentTheme);
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            applyLanguage();
+            fetch('/api/tray-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lang: currentLang })
+            }).catch(() => {});
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            applyLanguage();
+        }
+
+        // 数据目录设置功能
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('dataDirInput').value = data.config.data_dir;
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        function selectDataDir() {
+            document.getElementById('currentDataDir').value = document.getElementById('dataDirInput').value;
+            document.getElementById('newDataDir').value = '';
+            document.getElementById('dataDirModal').classList.add('show');
+        }
+
+        function closeDataDirModal() {
+            document.getElementById('dataDirModal').classList.remove('show');
+        }
+
+        function browseNewDir() {
+            // 提供便携模式和传统模式选择
+            const currentPath = document.getElementById('newDataDir').value;
+            
+            const pathOptions = [
+                { name: '便携模式（软件目录）', path: './user_data', description: '数据保存在软件所在目录，配置也保存在软件目录' },
+                { name: '用户目录模式', path: '~/DocFieldReplacer', description: '数据保存在用户目录，配置也保存在用户目录' },
+                { name: '自定义路径', path: '', description: '手动输入完整路径，配置保存在软件目录' }
+            ];
+            
+            let message = '请选择数据存储模式：\n\n';
+            pathOptions.forEach((option, index) => {
+                message += `${index + 1}. ${option.name} - ${option.description}\n`;
+            });
+            message += '\n当前路径: ' + (currentPath || '未设置');
+            
+            const choice = prompt(message + '\n\n请输入选项编号 (1-3) 或直接输入路径:', currentPath);
+            
+            if (choice !== null) {
+                const trimmedChoice = choice.trim();
+                
+                // 处理数字选择
+                if (trimmedChoice === '1') {
+                    document.getElementById('newDataDir').value = './user_data';
+                } else if (trimmedChoice === '2') {
+                    document.getElementById('newDataDir').value = '~/DocFieldReplacer';
+                } else if (trimmedChoice === '3') {
+                    // 自定义路径
+                    const customPath = prompt('请输入完整路径:', currentPath);
+                    if (customPath !== null) {
+                        document.getElementById('newDataDir').value = customPath.trim();
+                    }
+                } else {
+                    // 直接输入路径
+                    document.getElementById('newDataDir').value = trimmedChoice;
+                }
+            }
+        }
+
+        async function saveDataDir() {
+            const newDir = document.getElementById('newDataDir').value.trim();
+            if (!newDir) {
+                toast(t('dirRequired'), 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data_dir: newDir })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    toast(t('dirSaved'), 'success');
+                    closeDataDirModal();
+                    
+                    // 直接更新显示，避免缓存问题
+                    if (data.config && data.config.data_dir) {
+                        document.getElementById('dataDirInput').value = data.config.data_dir;
+                    } else {
+                        // 如果后端没有返回配置，重新加载
+                        await loadConfig();
+                    }
+                } else {
+                    toast(data.error, 'error');
+                }
+            } catch (error) {
+                toast(t('saveFailed'), 'error');
+            }
+        }
+
+        // 清除数据目录功能
+        async function clearDataDir() {
+            if (!confirm(t('clearDataConfirm'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/clear-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    toast(t('clearDataSuccess'), 'success');
+                } else {
+                    toast(data.error || t('clearDataFailed'), 'error');
+                }
+            } catch (error) {
+                toast(t('clearDataFailed'), 'error');
+            }
+        }
+
+        // 无痕模式切换（点击切换模式）
+        function togglePrivacyMode() {
+            const privacyToggle = document.getElementById('privacyToggle');
+            const settingsSection = document.querySelector('.settings-section:nth-child(2)'); // 数据管理部分
+            
+            // 切换状态
+            const isActive = privacyToggle.classList.contains('active');
+            const newPrivacyMode = !isActive;
+            
+            // 保存设置到本地存储
+            localStorage.setItem('privacyMode', newPrivacyMode);
+            
+            // 更新UI状态
+            if (newPrivacyMode) {
+                // 启用无痕模式
+                privacyToggle.classList.add('active');
+                settingsSection.classList.add('privacy-mode-disabled');
+                toast('无痕模式已启用 - 不保存任何数据', 'info');
+            } else {
+                // 禁用无痕模式
+                privacyToggle.classList.remove('active');
+                settingsSection.classList.remove('privacy-mode-disabled');
+                toast('无痕模式已禁用', 'info');
+            }
+        }
+
+        // 加载无痕模式设置
+        function loadPrivacyMode() {
+            const privacyMode = localStorage.getItem('privacyMode') === 'true';
+            const privacyToggle = document.getElementById('privacyToggle');
+            const settingsSection = document.querySelector('.settings-section:nth-child(2)');
+            
+            if (privacyMode) {
+                privacyToggle.classList.add('active');
+                settingsSection.classList.add('privacy-mode-disabled');
+            } else {
+                privacyToggle.classList.remove('active');
+                settingsSection.classList.remove('privacy-mode-disabled');
+            }
+        }
+
+        // 初始化主题
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        applyLanguage();
+        loadConfig();
+        loadPrivacyMode();
+
+    </script>
+</body>
+</html>
